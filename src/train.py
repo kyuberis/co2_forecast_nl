@@ -120,12 +120,7 @@ def main():
         cfg = yaml.safe_load(f)
 
     pl.seed_everything(cfg["seed"], workers=True)
-
-    # ── 1. Load data ──
-    df = load_and_prepare(cfg["master_dataset"], cfg["target"])
-
-    # Fill covariate NaNs after loading (was in original load_and_prepare,
-    # extracted so the function stays focused on loading + indexing)
+    df = load_and_prepare(cfg["master_dataset"], cfg["target"]) 
     df = fill_covariate_nans(df, cfg["past_covariates"] + cfg["future_covariates"])
 
     df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx = make_splits(df, cfg)

@@ -52,11 +52,11 @@ def run_inference_with_weather_forecast(
     horizon    = cfg["horizon"]
     save_dir   = cfg["save_dir"]
 
-    # ---- 1) Load model
+    # ----  Load model
     model = TemporalFusionTransformer.load_from_checkpoint(best_ckpt_path)
     model.eval()
 
-    # ---- 2) History (context)
+    # ----  History (context)
     df_hist = df_full.sort_values(time_col).copy()
     df_context = df_hist.tail(lookback).copy()
     last_ts = pd.to_datetime(df_hist[time_col].iloc[-1])
@@ -65,7 +65,7 @@ def run_inference_with_weather_forecast(
     else:
         last_ts = last_ts.tz_convert("UTC")
 
-    # ---- 3) Future timestamps
+    # ----  Future timestamps
     future_ts = pd.date_range(
         start=last_ts + pd.Timedelta(hours=1),
         periods=horizon,
@@ -76,7 +76,7 @@ def run_inference_with_weather_forecast(
     df_future[country_col] = country_value
     df_future[target_col] = np.nan  # unknown future target
 
-    # ---- 4) Load Open-Meteo 7-day forecast and join
+    # ---- Load Open-Meteo 7-day forecast and join
     df_wfc = pd.read_csv(weather_forecast_csv)
     if "validfrom" in df_wfc.columns:
         df_wfc["validfrom"] = pd.to_datetime(df_wfc["validfrom"], utc=True)
@@ -103,10 +103,10 @@ def run_inference_with_weather_forecast(
     for c in weather_cols:
         df_future[c] = df_future[c].ffill().fillna(0)
 
-    # ---- 5) Add deterministic time features for future rows (must match training)
+    # ---- Add deterministic time features for future rows (must match training)
     df_future = add_time_features(df_future.set_index(time_col), timezone=cfg["timezone"]).reset_index()
 
-    # ---- 6) Create consistent time_idx (same reference as training)
+    # ---- Create consistent time_idx (same reference as training)
     min_ts = pd.to_datetime(df_hist[time_col].min())
     if min_ts.tzinfo is None:
         min_ts = min_ts.tz_localize("UTC")
@@ -132,12 +132,12 @@ def run_inference_with_weather_forecast(
 
     df_future["time_idx"] = _make_time_idx(df_future[time_col])
 
-    # ---- 7) Combine context + future
+    # ---- Combine context + future
     df_combined = pd.concat([df_context, df_future], ignore_index=True)
     last_y = float(df_context[target_col].iloc[-1])
     df_combined[target_col] = df_combined[target_col].fillna(last_y)
 
-    # ---- 8) Ensure all columns required by training_dataset exist
+    # ---- Ensure all columns required by training_dataset exist
     needed_cols = get_needed_cols(training_dataset)
     for col in needed_cols:
         if col not in df_combined.columns:
@@ -150,7 +150,7 @@ def run_inference_with_weather_forecast(
         if df_combined[col].dtype.kind in "biufc":
             df_combined[col] = df_combined[col].fillna(0)
 
-    # ---- 9) Build inference dataset/loader
+    # ---- Build inference dataset/loader
     inference_ds = TimeSeriesDataSet.from_dataset(
         training_dataset,
         df_combined,
@@ -159,7 +159,7 @@ def run_inference_with_weather_forecast(
     )
     inference_loader = inference_ds.to_dataloader(train=False, batch_size=1, num_workers=0)
 
-    # ---- 10) Predict
+    # ----  Predict
     preds = model.predict(inference_loader, mode="quantiles")
     if hasattr(preds, "dim") and preds.dim() == 3 and preds.shape[-1] >= 3:
         y_q10 = preds[0, :, 0].detach().cpu().numpy()
@@ -180,7 +180,7 @@ def run_inference_with_weather_forecast(
     os.makedirs(f"{save_dir}/predictions", exist_ok=True)
     result.to_csv(f"{save_dir}/predictions/co2_forecast_168h_with_weather.csv", index=False)
 
-    # Plot
+
     fig, ax = plt.subplots(figsize=(14, 5))
     ax.plot(result["timestamp"], result["co2_forecast_q50"], label="Forecast (median)", linewidth=2)
     ax.fill_between(

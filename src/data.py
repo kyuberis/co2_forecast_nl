@@ -65,7 +65,7 @@ def load_and_prepare(path, target):
 
 
 def fill_covariate_nans(df, covariate_cols):
-    """Fill any remaining NaNs in covariates (weather edges, etc.)"""
+    """Fill any remaining NaNs in covariates"""
     for c in covariate_cols:
         if c in df.columns:
             df[c] = df[c].ffill().fillna(0)

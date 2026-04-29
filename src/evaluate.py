@@ -205,7 +205,7 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
 
 def compare_models(metrics_tft, metrics_nhits):
     """Print side-by-side comparison table."""
-    naive = metrics_tft["naive"]  # naive is identical across runs; pick from either
+    naive = metrics_tft["naive"]  # naive is identical across runs
     tft   = metrics_tft["model"]
     nhits = metrics_nhits["model"]
     print(f"\n{'='*60}")

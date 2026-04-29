@@ -1,5 +1,5 @@
 """
-Three sanity tests for the most important invariants:
+Three sanity tests for the most important issues:
 1. add_time_features is deterministic and timezone-aware
 2. make_splits places val/test windows strictly after their boundaries (no leakage)
 3. seasonal naive (t-24) on a 24h-periodic signal produces zero error
@@ -24,7 +24,6 @@ def test_time_features_deterministic_and_tz_aware():
     pd.testing.assert_frame_equal(out_utc, out_utc_again)
 
     out_ams = add_time_features(df, timezone="Europe/Amsterdam")
-    # Amsterdam is 2h ahead of UTC in June
     assert (out_ams["hour"].iloc[0] - out_utc["hour"].iloc[0]) % 24 == 2
 
     for col in ["sin_hour", "cos_hour", "sin_dow", "cos_dow"]:
@@ -55,7 +54,6 @@ def test_chronological_split_no_leakage():
 
 
 def test_seasonal_naive_perfect_on_24h_period():
-    """Reproduces the inner loop of evaluate.py's naive baseline."""
     horizon = 48
     n_windows = 5
     enc_len = 96  # multiple of 24 so tile aligns with hour-of-day
