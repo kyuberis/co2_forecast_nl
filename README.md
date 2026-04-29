@@ -51,7 +51,7 @@ co2_forecast_nl/
 │   └── forecast.py     # CLI: 168h forecast with weather input
 ├── tests/
 │   └── test_basic.py
-└── data/               # CSVs go here (gitignored)
+└── data/               # CSVs 
 ```
 
 ## Quick start
@@ -65,7 +65,9 @@ source .venv/bin/activate         # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Place `master_dataset.csv` and `openmeteo_forecast_7days.csv` in `data/`. Then:
+Files `master_dataset.csv` and `openmeteo_forecast_7days.csv` are in `data/`. 
+
+Then:
 
 ```bash
 pytest -v                                            # sanity tests
