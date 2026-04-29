@@ -66,7 +66,6 @@ def run_inference_with_weather_forecast(
         last_ts = last_ts.tz_convert("UTC")
 
     # ---- 3) Future timestamps
-    # FIX: freq="H" is deprecated in newer pandas; use lowercase "h"
     future_ts = pd.date_range(
         start=last_ts + pd.Timedelta(hours=1),
         periods=horizon,
