@@ -132,8 +132,6 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     print(f"  Worst windows saved to {save_dir}/predictions/{model_name}_worst_windows.csv")
 
     # Save 3 worst windows as figures
-    # FIX: original code had savefig OUTSIDE the loop, so only the last figure
-    # was saved (and overwritten each iteration). Now each window gets its own file.
     for j, wi in enumerate(worst_idx[:3], start=1):
         plt.figure(figsize=(14, 5))
         plt.plot(y_true[wi], label="Actual", linewidth=1.5)
@@ -155,10 +153,7 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
         plt.close()
 
     # ── Plot 1: Predictions vs Actuals (first 2 weeks of test) ──
-    # FIX: original code had the entire plotting block (including savefig)
-    # nested inside `if predictions.output.dim() == 3`, so for NHiTS the
-    # plot was never saved. Now savefig runs unconditionally; only the
-    # quantile band is conditional.
+   
     fig, ax = plt.subplots(figsize=(14, 5))
     sample = 0   # representative window
     ax.plot(y_true[sample], label="Actual CO₂ factor", color="steelblue", linewidth=1.5)
@@ -200,21 +195,27 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     metrics_df.to_csv(f"{save_dir}/predictions/{model_name}_metrics_by_horizon.csv", index=False)
 
     print(f"  Saved plots to {save_dir}/predictions/{model_name}_*.png")
+    mape_naive = (np.abs((y_naive - y_true) / (y_true + 1e-8))).mean() * 100
 
-    return {"mae": mae, "rmse": rmse, "mape": mape}
-
+    return {
+    "model":  {"mae": mae, "rmse": rmse, "mape": mape},
+    "naive":  {"mae": mae_naive, "rmse": rmse_naive, "mape": mape_naive},
+    }   
+    
 
 def compare_models(metrics_tft, metrics_nhits):
     """Print side-by-side comparison table."""
-    print(f"\n{'='*50}")
+    naive = metrics_tft["naive"]  # naive is identical across runs; pick from either
+    tft   = metrics_tft["model"]
+    nhits = metrics_nhits["model"]
+    print(f"\n{'='*60}")
     print("MODEL COMPARISON")
-    print(f"{'='*50}")
-    print(f"{'Metric':<10} {'TFT':>12} {'NHiTS':>12}")
-    print("-" * 36)
+    print(f"{'='*60}")
+    print(f"{'Metric':<10} {'Naive (t-24)':>14} {'NHiTS':>14} {'TFT':>14}")
+    print("-" * 56)
     for k in ["mae", "rmse", "mape"]:
         unit = "%" if k == "mape" else "kg/kWh"
-        print(f"{k.upper():<10} {metrics_tft[k]:>12.4f} {metrics_nhits[k]:>12.4f}  {unit}")
-
+        print(f"{k.upper():<10} {naive[k]:>14.4f} {nhits[k]:>14.4f} {tft[k]:>14.4f}  {unit}")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -258,7 +259,24 @@ def main():
 
     if metrics_tft and metrics_nhits:
         compare_models(metrics_tft, metrics_nhits)
-
+    elif metrics_tft:
+        n = metrics_tft["naive"]
+        m = metrics_tft["model"]
+        print(f"\n{'='*60}")
+        print(f"{'Metric':<10} {'Naive (t-24)':>14} {'TFT':>14}")
+        print("-" * 40)
+        for k in ["mae", "rmse", "mape"]:
+            unit = "%" if k == "mape" else "kg/kWh"
+            print(f"{k.upper():<10} {n[k]:>14.4f} {m[k]:>14.4f}  {unit}")
+    elif metrics_nhits:
+        n = metrics_nhits["naive"]
+        m = metrics_nhits["model"]
+        print(f"\n{'='*60}")
+        print(f"{'Metric':<10} {'Naive (t-24)':>14} {'NHiTS':>14}")
+        print("-" * 40)
+        for k in ["mae", "rmse", "mape"]:
+            unit = "%" if k == "mape" else "kg/kWh"
+            print(f"{k.upper():<10} {n[k]:>14.4f} {m[k]:>14.4f}  {unit}")
 
 if __name__ == "__main__":
     main()
