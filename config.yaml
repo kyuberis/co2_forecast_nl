@@ -1,0 +1,77 @@
+# Paths
+master_dataset: data/master_dataset.csv
+weather_forecast: data/openmeteo_forecast_7days.csv
+save_dir: artifacts
+
+# Data
+target: co2_emissionfactor
+horizon: 168          # 7 days x 24h
+lookback: 336         # 168 * 2 — 2 weeks of history as encoder context
+train_end: "2024-07-01"
+val_end: "2024-10-01"
+timezone: Europe/Amsterdam
+
+# Training
+batch_size: 64 
+max_epochs: 50
+learning_rate: 0.0003
+early_stopping_patience: 8
+gradient_clip_val: 0.1
+accelerator: auto
+seed: 42
+
+# TFT
+tft_hidden_size: 128
+tft_attention_head_size: 4
+tft_dropout: 0.1
+tft_hidden_continuous_size: 32
+tft_quantiles: [0.1, 0.5, 0.9]
+
+# NHiTS
+nhits_hidden_size: 512
+nhits_weight_decay: 0.01
+
+# Features known in the PAST (observed, not forecastable) — encoder only
+past_covariates:
+  - solar_volume
+  - solar_capacity
+  - wind_volume
+  - wind_capacity
+  - offwind_volume
+  - offwind_capacity
+  - biomass_volume
+  - waste_volume
+  - gas_volume
+  - coal_volume
+  - nucl_volume
+  - co2_emissionfactor_was_missing
+  - solar_volume_was_missing
+  - wind_volume_was_missing
+
+# Features known in the FUTURE — TFT decoder uses these
+future_covariates:
+  # Time features
+  - sin_hour
+  - cos_hour
+  - sin_dow
+  - cos_dow
+  - sin_doy
+  - cos_doy
+  - sin_month
+  - cos_month
+  - hour
+  - dow
+  - month
+  - is_daylight
+  # Weather forecast (Open-Meteo ECMWF, available 7 days ahead)
+  - weather_shortwave_radiation
+  - weather_direct_normal_irradiance
+  - weather_diffuse_radiation
+  - weather_cloud_cover
+  - weather_cloud_cover_low
+  - weather_wind_speed_10m
+  - weather_wind_speed_100m
+  - weather_wind_direction_100m
+  - weather_temperature_2m
+  - weather_apparent_temperature
+  - weather_precipitation
