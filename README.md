@@ -29,23 +29,23 @@ Test set: 2024-10-01 to 2025-12-31 (~15 months unseen).
 
 Per-horizon MAE (TFT):
 
-| Horizon  |                 MAE                   |
-|----------|---------------------------------------|
-| 1-24h    | to be updated after full training run |
-| 25-72h   | to be updated after full training run |
-| 73-168h  | to be updated after full training run |
+| Horizon  |   MAE   |
+|----------|---------|
+| 1-24h    | pending |
+| 25-72h   | pending |
+| 73-168h  | pending |
 
 Plots saved to `artifacts/predictions/` after evaluation.
 
 ## Project structure
 
 ```
-co2-forecast-nl/
+co2_forecast_nl/
 ├── config.yaml         # all paths and hyperparameters
 ├── requirements.txt
 ├── src/
 │   ├── data.py         # load_and_prepare, make_splits, build_datasets, add_time_features
-│   ├── models.py       # build_tft, build_nhints (baseline)
+│   ├── models.py       # build_tft, build_nhits (baseline)
 │   ├── train.py        # CLI: train one model
 │   ├── evaluate.py     # CLI: metrics, naive baseline, plots
 │   └── forecast.py     # CLI: 168h forecast with weather input
@@ -57,8 +57,8 @@ co2-forecast-nl/
 ## Quick start
 
 ```bash
-git clone https://github.com/<user>/co2-forecast-nl.git
-cd co2-forecast-nl
+git clone https://github.com/kyuberis/co2_forecast_nl.git
+cd co2_forecast_nl
 
 python -m venv .venv
 source .venv/bin/activate         # Windows: .venv\Scripts\Activate.ps1
