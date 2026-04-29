@@ -42,7 +42,7 @@ def build_tft(training_dataset, cfg):
     return tft
 
 
-def build_nhints(training_dataset, cfg):
+def build_nhits(training_dataset, cfg):
     """
     NHiTS (Neural Hierarchical Interpolation for Time Series) baseline for comparison.
     Uses same dataset interface as TFT for fair comparison.

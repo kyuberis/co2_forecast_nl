@@ -37,7 +37,7 @@ from src.data import (
     load_and_prepare,
     make_splits,
 )
-from src.models import build_nhints, build_tft
+from src.models import build_nhits, build_tft
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s | %(message)s")
@@ -139,8 +139,8 @@ def main():
     else:
         training_ds, train_loader, val_loader, _ = build_datasets_nhits(
             df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg)
-        model = build_nhints(training_ds, cfg)
-
+        model = build_nhits(training_ds, cfg)
+ 
     print("\n" + "="*50)
     print(f"TRAINING: {args.model.upper()}")
     print("="*50)
