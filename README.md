@@ -10,6 +10,13 @@ The CO2 emission factor measures the carbon intensity of grid electricity at a g
 - **Quantile output**: predicts q10, q50, q90, giving an 80% interval per hour. Useful for downstream load-shifting decisions.
 - **Strong baseline included**: NHiTS does not use future covariates, so the gap between TFT and NHiTS is roughly the value added by the weather forecast.
 
+## What's in here
+
+- Modular pipeline: data loading, splits, feature engineering, datasets, models, training, evaluation, and inference each in their own module.
+- Config-driven: all hyperparameters and paths in `config.yaml`, no hardcoded values in code.
+- Honest evaluation: chronological train/val/test split with explicit `min_prediction_idx` to prevent leakage; seasonal naive (t-24) baseline; per-horizon MAE breakdown (1-24h / 25-72h / 73-168h); top-10 worst forecast windows analysis.
+- Sanity tests covering the most easy-failing parts: time feature determinism, chronological split correctness, naive baseline on a known-periodic signal.
+
 ## Results
 
 Test set: 2024-10-01 to 2025-12-31 (~15 months unseen).
