@@ -16,9 +16,9 @@ Test set: 2024-10-01 to 2025-12-31 (~15 months unseen).
 
 | Model                  | MAE (kg/kWh) | RMSE (kg/kWh) | MAPE (%) |
 |------------------------|--------------|---------------|----------|
-| Seasonal naive (t-24)  | to be updated after full training run   |
-| NHiTS                  | to be updated after full training run   |
-| TFT                    | to be updated after full training run   |
+| Seasonal naive (t-24)  |    pending   |    pending    |  pending |
+| NHiTS                  |    pending   |    pending    |  pending |
+| TFT                    |    pending   |    pending    |  pending |
 
 Per-horizon MAE (TFT):
 
@@ -76,6 +76,3 @@ For a CPU smoke-test before a real GPU run, edit `config.yaml`: set `max_epochs:
 - **Past covariates**: per-source generation and capacity (solar, wind, offwind, biomass, waste, gas, coal, nuclear) plus missingness flags from upstream imputation.
 - **Future covariates**: cyclical time features (hour, day of week, day of year, month), `is_daylight`, and Open-Meteo weather forecast variables.
 
-## License
-
-MIT.
