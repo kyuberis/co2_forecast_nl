@@ -1,3 +1,4 @@
+![Tests](https://github.com/kyuberis/co2_forecast_nl/actions/workflows/tests.yml/badge.svg)
 # CO₂ Emission Factor Forecasting (Netherlands)
 
 7-day hourly forecasts of the Dutch grid CO2 emission factor (kg CO₂ / kWh) using a Temporal Fusion Transformer with weather forecasts as known-future covariates. NHiTS and seasonal naive (t-24) are included as baselines.
