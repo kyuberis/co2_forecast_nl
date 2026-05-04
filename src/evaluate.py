@@ -3,7 +3,7 @@ evaluate.py
 
 PART 4: EVALUATION
 
-Computes MAE, RMSE, MAPE per forecast horizon, seasonal naive baseline,
+Computes MAE, RMSE, MAPE, WAPE per forecast horizon, seasonal naive baseline,
 worst forecast windows, and saves plots.
 
 Usage:
@@ -37,7 +37,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     """
-    Evaluate on test set. Computes MAE, RMSE, MAPE per forecast horizon.
+    Evaluate on test set. Computes MAE, RMSE, MAPE and WAPE per forecast horizon.
     Saves plots: predictions vs actuals + error by horizon step.
     """
     HORIZON = cfg["horizon"]
@@ -91,6 +91,7 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     mae  = abs_err.mean()
     rmse = np.sqrt((abs_err ** 2).mean())
     mape = (np.abs((y_pred - y_true) / (y_true + 1e-8))).mean() * 100
+    wape = np.abs(y_pred - y_true).sum() / np.abs(y_true).sum() * 100
 
     print(f"\n{'='*50}")
     print(f"TEST SET METRICS — {model_name.upper()}")
@@ -98,6 +99,7 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     print(f"  MAE:  {mae:.4f} kg CO₂/kWh")
     print(f"  RMSE: {rmse:.4f} kg CO₂/kWh")
     print(f"  MAPE: {mape:.2f}%")
+    print(f"  WAPE: {wape:.2f}%")
 
     # Per-horizon metrics (MAE at each step h=1..168)
     mae_per_h  = abs_err.mean(axis=0)
@@ -196,10 +198,11 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
 
     print(f"  Saved plots to {save_dir}/predictions/{model_name}_*.png")
     mape_naive = (np.abs((y_naive - y_true) / (y_true + 1e-8))).mean() * 100
+    wape_naive = np.abs(y_naive - y_true).sum() / np.abs(y_true).sum() * 100
 
     return {
-    "model":  {"mae": mae, "rmse": rmse, "mape": mape},
-    "naive":  {"mae": mae_naive, "rmse": rmse_naive, "mape": mape_naive},
+    "model":  {"mae": mae, "rmse": rmse, "mape": mape, "wape": wape},
+    "naive":  {"mae": mae_naive, "rmse": rmse_naive, "mape": mape_naive, "wape": wape_naive}, 
     }   
     
 
@@ -213,8 +216,8 @@ def compare_models(metrics_tft, metrics_nhits):
     print(f"{'='*60}")
     print(f"{'Metric':<10} {'Naive (t-24)':>14} {'NHiTS':>14} {'TFT':>14}")
     print("-" * 56)
-    for k in ["mae", "rmse", "mape"]:
-        unit = "%" if k == "mape" else "kg/kWh"
+    for k in ["mae", "rmse", "mape", "wape"]:
+        unit = "%" if k in ["mape", "wape"] else "kg/kWh"
         print(f"{k.upper():<10} {naive[k]:>14.4f} {nhits[k]:>14.4f} {tft[k]:>14.4f}  {unit}")
 
 def main():
