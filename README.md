@@ -37,7 +37,19 @@ Per-horizon MAE (TFT):
 | 25-72h   |  0.0382 |
 | 73-168h  |  0.0387 |
 
+TFT achieves the best performance across all metrics, reducing MAE by ~42% compared to the seasonal naive baseline and by ~32% compared to NHiTS.
+
 Plots saved to `artifacts/predictions/` after evaluation.
+
+## Example forecast(168h window)
+
+<p align="center">
+  <img src="artifacts/predictions/tft_pred_vs_actual.png" width="700"/>
+</p>
+
+TFT captures both daily seasonality and sharp changes in CO₂ intensity.
+
+
 
 ## Project structure
 
@@ -48,7 +60,7 @@ co2_forecast_nl/
 ├── requirements.txt
 ├── src/
     └── co2_forecast/
-        ├──__init__.py
+        ├── __init__.py
 │       ├── data.py         # load_and_prepare, make_splits, build_datasets, add_time_features
 │       ├── models.py       # build_tft, build_nhits (baseline)
 │       ├── train.py        # CLI: train one model
@@ -67,7 +79,7 @@ cd co2_forecast_nl
 
 python -m venv .venv
 source .venv/bin/activate         # Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+
 ```
 
 Files `master_dataset.csv` and `openmeteo_forecast_7days.csv` are in `data/`. 
@@ -75,11 +87,23 @@ Files `master_dataset.csv` and `openmeteo_forecast_7days.csv` are in `data/`.
 Then:
 
 ```bash
-pytest -v                                            # sanity tests
+# 1. Install package (editable mode)
+pip install -e .
+
+# 2. Run basic tests
+pytest -v              
+
+# 3. Train models
 python -m co2_forecast.train --config config.yaml --model tft
 python -m co2_forecast.train --config config.yaml --model nhits
+
+# 4. Evaluate models
 python -m co2_forecast.evaluate --config config.yaml
+
+# 5. Generate forecast
 python -m co2_forecast.forecast --config config.yaml
+
+
 ```
 
 For a CPU smoke-test before a real GPU run, edit `config.yaml`: set `max_epochs: 2`, `batch_size: 16`, `tft_hidden_size: 16`, `accelerator: cpu`. Once the pipeline runs end-to-end, use proper parameters and train on GPU.
@@ -89,4 +113,6 @@ For a CPU smoke-test before a real GPU run, edit `config.yaml`: set `max_epochs:
 - **Target**: `co2_emissionfactor`, hourly, Dutch grid.
 - **Past covariates**: per-source generation and capacity (solar, wind, offwind, biomass, waste, gas, coal, nuclear) plus missingness flags from upstream imputation.
 - **Future covariates**: cyclical time features (hour, day of week, day of year, month), `is_daylight`, and Open-Meteo weather forecast variables.
+
+All features are constructed using only information available at or before the prediction time to avoid leakage.
 
