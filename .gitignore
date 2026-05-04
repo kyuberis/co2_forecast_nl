@@ -9,6 +9,8 @@ venv/
 .ipynb_checkpoints/
 
 artifacts/
+!artifacts/predictions/
+!artifacts/predictions/tft_pred_vs_actual.png
 lightning_logs/
 
 .pytest_cache/
