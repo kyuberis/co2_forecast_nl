@@ -1,8 +1,8 @@
-# CO2 Emission Factor Forecasting (Netherlands)
+# CO₂ Emission Factor Forecasting (Netherlands)
 
-7-day hourly forecasts of the Dutch grid CO2 emission factor (kg CO2 / kWh) using a Temporal Fusion Transformer with weather forecasts as known-future covariates. NHiTS and seasonal naive (t-24) are included as baselines.
+7-day hourly forecasts of the Dutch grid CO2 emission factor (kg CO₂ / kWh) using a Temporal Fusion Transformer with weather forecasts as known-future covariates. NHiTS and seasonal naive (t-24) are included as baselines.
 
-The CO2 emission factor measures the carbon intensity of grid electricity at a given hour. It rises when the grid leans on gas and coal, falls when wind and solar generation are high. A reliable 168h forecast helps shift flexible loads (EV charging, heat pumps, industrial processes) toward cleaner hours.
+The CO₂ emission factor measures the carbon intensity of grid electricity at a given hour. It rises when the grid leans on gas and coal, falls when wind and solar generation are high. A reliable 168h forecast helps shift flexible loads (EV charging, heat pumps, industrial processes) toward cleaner hours.
 
 ## Why TFT
 
@@ -27,7 +27,7 @@ Test set: 2024-10-01 to 2025-12-31 (~15 months unseen).
 | NHiTS                  |    0.0565    |     0.0703    |  44.2561 |  25.72  |
 | TFT                    |    0.0385    |     0.0483    |  31.1261 |  17.54  |
 
-Note: MAPE is sensitive to small target values — the CO2 factor approaches zero in hours with high wind/solar generation. MAE and RMSE are more reliable for ranking models on this data.
+Note: MAPE is sensitive to small target values — the CO₂ factor approaches zero in hours with high wind/solar generation. MAE and RMSE are more reliable for ranking models on this data.
 
 Per-horizon MAE (TFT):
 
@@ -41,7 +41,7 @@ TFT achieves the best performance across all metrics, reducing MAE by ~42% compa
 
 Plots saved to `artifacts/predictions/` after evaluation.
 
-## Example forecast(168h window)
+## Example forecast (168h window)
 
 <p align="center">
   <img src="artifacts/predictions/tft_pred_vs_actual.png" width="700"/>
