@@ -21,19 +21,21 @@ The CO2 emission factor measures the carbon intensity of grid electricity at a g
 
 Test set: 2024-10-01 to 2025-12-31 (~15 months unseen).
 
-| Model                  | MAE (kg/kWh) | RMSE (kg/kWh) | MAPE (%) |
-|------------------------|--------------|---------------|----------|
-| Seasonal naive (t-24)  |    pending   |    pending    |  pending |
-| NHiTS                  |    pending   |    pending    |  pending |
-| TFT                    |    pending   |    pending    |  pending |
+| Model                  | MAE (kg/kWh) | RMSE (kg/kWh) |  MAPE (%)| WAPE (%)|
+|------------------------|--------------|---------------|----------|---------|
+| Seasonal naive (t-24)  |    0.0668    |     0.0920    |  41.0973 |  30.43  |
+| NHiTS                  |    0.0565    |     0.0703    |  44.2561 |  25.72  |
+| TFT                    |    0.0385    |     0.0483    |  31.1261 |  17.54  |
+
+Note: MAPE is sensitive to small target values — the CO2 factor approaches zero in hours with high wind/solar generation. MAE and RMSE are more reliable for ranking models on this data.
 
 Per-horizon MAE (TFT):
 
 | Horizon  |   MAE   |
 |----------|---------|
-| 1-24h    | pending |
-| 25-72h   | pending |
-| 73-168h  | pending |
+| 1-24h    |  0.0385 |
+| 25-72h   |  0.0382 |
+| 73-168h  |  0.0387 |
 
 Plots saved to `artifacts/predictions/` after evaluation.
 
