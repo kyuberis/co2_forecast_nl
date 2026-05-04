@@ -10,7 +10,9 @@ from pytorch_forecasting import TemporalFusionTransformer
 from pytorch_forecasting.metrics import MAE, QuantileLoss
 from pytorch_forecasting.models import NHiTS
 
-log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 # ══════════════════════════════════════════════════════════════════
 # PART 2: TFT MODEL
@@ -40,7 +42,7 @@ def build_tft(training_dataset, cfg):
         reduce_on_plateau_patience=4,
         optimizer="adamw",
     )
-    print(f"\nTFT parameters: {tft.size() / 1e3:.1f}k")
+    logger.info(f"\nTFT parameters: {tft.size() / 1e3:.1f}k")
     return tft
 
 
@@ -57,5 +59,5 @@ def build_nhits(training_dataset, cfg):
         hidden_size=cfg["nhits_hidden_size"],
         optimizer="adamw",
     )
-    print(f"NHiTS parameters: {model.size() / 1e3:.1f}k")
+    logger.info(f"NHiTS parameters: {model.size() / 1e3:.1f}k")
     return model

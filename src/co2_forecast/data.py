@@ -12,8 +12,8 @@ import pandas as pd
 from pytorch_forecasting import TimeSeriesDataSet
 from pytorch_forecasting.data import TorchNormalizer
 
-log = logging.getLogger(__name__)
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # ══════════════════════════════════════════════════════════════════
 # PART 1: DATA PREPARATION

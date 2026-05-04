@@ -41,7 +41,7 @@ from co2_forecast.models import build_nhits, build_tft
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s | %(message)s")
-
+logger = logging.getLogger(__name__)
 
 # ══════════════════════════════════════════════════════════════════
 # PART 3: TRAINING

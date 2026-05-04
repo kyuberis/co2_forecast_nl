@@ -31,6 +31,7 @@ from co2_forecast.data import (
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s | %(message)s")
+logger = logging.getLogger(__name__)
 
 
 def run_inference_with_weather_forecast(

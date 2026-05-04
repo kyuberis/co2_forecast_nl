@@ -33,6 +33,7 @@ from co2_forecast.data import (
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s | %(message)s")
+logger = logging.getLogger(__name__)
 
 
 def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
@@ -51,7 +52,7 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
         return_x=True,
         trainer_kwargs={"accelerator": "auto"},
     )
-    print("x keys:", list(predictions.x.keys()))
+    logger.info("x keys:", list(predictions.x.keys()))
     y_true = predictions.y[0].cpu().numpy()
     if predictions.output.dim() == 3:
         y_pred = predictions.output[:, :, 1].cpu().numpy()  # TFT — [q10, q50, q90]
@@ -84,8 +85,8 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     mae_naive = np.nanmean(np.abs(y_naive - y_true))
     rmse_naive = np.sqrt(np.nanmean((y_naive - y_true) ** 2))
 
-    print(f"  Seasonal Naive (t-24) MAE:  {mae_naive:.4f} kg CO₂/kWh")
-    print(f"  Seasonal Naive (t-24) RMSE: {rmse_naive:.4f} kg CO₂/kWh")
+    logger.info(f"  Seasonal Naive (t-24) MAE:  {mae_naive:.4f} kg CO₂/kWh")
+    logger.info(f"  Seasonal Naive (t-24) RMSE: {rmse_naive:.4f} kg CO₂/kWh")
 
     # Overall metrics
     mae = abs_err.mean()
@@ -93,21 +94,21 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     mape = (np.abs((y_pred - y_true) / (y_true + 1e-8))).mean() * 100
     wape = np.abs(y_pred - y_true).sum() / np.abs(y_true).sum() * 100
 
-    print(f"\n{'='*50}")
-    print(f"TEST SET METRICS — {model_name.upper()}")
-    print(f"{'='*50}")
-    print(f"  MAE:  {mae:.4f} kg CO₂/kWh")
-    print(f"  RMSE: {rmse:.4f} kg CO₂/kWh")
-    print(f"  MAPE: {mape:.2f}%")
-    print(f"  WAPE: {wape:.2f}%")
+    logger.info(f"\n{'='*50}")
+    logger.info(f"TEST SET METRICS — {model_name.upper()}")
+    logger.info(f"{'='*50}")
+    logger.info(f"  MAE:  {mae:.4f} kg CO₂/kWh")
+    logger.info(f"  RMSE: {rmse:.4f} kg CO₂/kWh")
+    logger.info(f"  MAPE: {mape:.2f}%")
+    logger.info(f"  WAPE: {wape:.2f}%")
 
     # Per-horizon metrics (MAE at each step h=1..168)
     mae_per_h = abs_err.mean(axis=0)
     rmse_per_h = np.sqrt((abs_err**2).mean(axis=0))
 
-    print(f"  MAE 1–24h:    {mae_per_h[:24].mean():.4f}")
-    print(f"  MAE 25–72h:   {mae_per_h[24:72].mean():.4f}")
-    print(f"  MAE 73–168h:  {mae_per_h[72:].mean():.4f}")
+    logger.info(f"  MAE 1–24h:    {mae_per_h[:24].mean():.4f}")
+    logger.info(f"  MAE 25–72h:   {mae_per_h[24:72].mean():.4f}")
+    logger.info(f"  MAE 73–168h:  {mae_per_h[72:].mean():.4f}")
 
     true_level = y_true.reshape(-1)
     err_level = abs_err.reshape(-1)
@@ -133,7 +134,7 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     )
 
     worst_table.to_csv(f"{save_dir}/predictions/{model_name}_worst_windows.csv", index=False)
-    print(f"  Worst windows saved to {save_dir}/predictions/{model_name}_worst_windows.csv")
+    logger.info(f"  Worst windows saved to {save_dir}/predictions/{model_name}_worst_windows.csv")
 
     # Save 3 worst windows as figures
     for j, wi in enumerate(worst_idx[:3], start=1):
@@ -202,7 +203,7 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     )
     metrics_df.to_csv(f"{save_dir}/predictions/{model_name}_metrics_by_horizon.csv", index=False)
 
-    print(f"  Saved plots to {save_dir}/predictions/{model_name}_*.png")
+    logger.info(f"  Saved plots to {save_dir}/predictions/{model_name}_*.png")
     mape_naive = (np.abs((y_naive - y_true) / (y_true + 1e-8))).mean() * 100
     wape_naive = np.abs(y_naive - y_true).sum() / np.abs(y_true).sum() * 100
 
@@ -224,7 +225,7 @@ def compare_models(metrics_tft, metrics_nhits):
     print("-" * 56)
     for k in ["mae", "rmse", "mape", "wape"]:
         unit = "%" if k in ["mape", "wape"] else "kg/kWh"
-        print(f"{k.upper():<10} {naive[k]:>14.4f} {nhits[k]:>14.4f} {tft[k]:>14.4f}  {unit}")
+        logger.info(f"{k.upper():<10} {naive[k]:>14.4f} {nhits[k]:>14.4f} {tft[k]:>14.4f}  {unit}")
 
 
 def main():
@@ -279,7 +280,7 @@ def main():
         print("-" * 40)
         for k in ["mae", "rmse", "mape"]:
             unit = "%" if k == "mape" else "kg/kWh"
-            print(f"{k.upper():<10} {n[k]:>14.4f} {m[k]:>14.4f}  {unit}")
+            logger.info(f"{k.upper():<10} {n[k]:>14.4f} {m[k]:>14.4f}  {unit}")
     elif metrics_nhits:
         n = metrics_nhits["naive"]
         m = metrics_nhits["model"]
@@ -288,7 +289,7 @@ def main():
         print("-" * 40)
         for k in ["mae", "rmse", "mape"]:
             unit = "%" if k == "mape" else "kg/kWh"
-            print(f"{k.upper():<10} {n[k]:>14.4f} {m[k]:>14.4f}  {unit}")
+            logger.info(f"{k.upper():<10} {n[k]:>14.4f} {m[k]:>14.4f}  {unit}")
 
 
 if __name__ == "__main__":
