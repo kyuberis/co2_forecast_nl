@@ -10,6 +10,7 @@ Usage:
     python -m co2_forecast.evaluate --config config.yaml
     python -m co2_forecast.evaluate --config config.yaml --models tft
 """
+
 import argparse
 import logging
 import os
@@ -23,7 +24,6 @@ from pytorch_forecasting import TemporalFusionTransformer
 from pytorch_forecasting.models import NHiTS
 
 from co2_forecast.data import (
-    add_time_features,
     build_datasets,
     build_datasets_nhits,
     fill_covariate_nans,
@@ -54,9 +54,9 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     print("x keys:", list(predictions.x.keys()))
     y_true = predictions.y[0].cpu().numpy()
     if predictions.output.dim() == 3:
-        y_pred = predictions.output[:, :, 1].cpu().numpy()   # TFT — [q10, q50, q90]
+        y_pred = predictions.output[:, :, 1].cpu().numpy()  # TFT — [q10, q50, q90]
     else:
-        y_pred = predictions.output.cpu().numpy()             # NHiTS
+        y_pred = predictions.output.cpu().numpy()  # NHiTS
 
     abs_err = np.abs(y_pred - y_true)
 
@@ -64,9 +64,9 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     # Seasonal naive baseline (t-24) — padding-safe
     # =========================
     x = predictions.x
-    encoder_target = x["encoder_target"].detach().cpu().numpy()      # [N, max_enc_len]
-    encoder_lengths = x["encoder_lengths"].detach().cpu().numpy()     # [N]
-    y_true = predictions.y[0].detach().cpu().numpy()                  # [N, H]
+    encoder_target = x["encoder_target"].detach().cpu().numpy()  # [N, max_enc_len]
+    encoder_lengths = x["encoder_lengths"].detach().cpu().numpy()  # [N]
+    y_true = predictions.y[0].detach().cpu().numpy()  # [N, H]
 
     y_naive = np.zeros_like(y_true)
 
@@ -74,22 +74,22 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
         h = h_idx + 1
         if h <= 24:
             # t-(24-h+1) inside the encoder, indexed by encoder_length
-            offset = (24 - h + 1)                       # 24..1
-            idx = encoder_lengths - offset              # [N] indexes in encoder_target
+            offset = 24 - h + 1  # 24..1
+            idx = encoder_lengths - offset  # [N] indexes in encoder_target
             idx = np.clip(idx, 0, encoder_target.shape[1] - 1)
             y_naive[:, h_idx] = encoder_target[np.arange(len(idx)), idx]
         else:
             y_naive[:, h_idx] = y_true[:, h_idx - 24]
 
-    mae_naive  = np.nanmean(np.abs(y_naive - y_true))
+    mae_naive = np.nanmean(np.abs(y_naive - y_true))
     rmse_naive = np.sqrt(np.nanmean((y_naive - y_true) ** 2))
 
     print(f"  Seasonal Naive (t-24) MAE:  {mae_naive:.4f} kg CO₂/kWh")
     print(f"  Seasonal Naive (t-24) RMSE: {rmse_naive:.4f} kg CO₂/kWh")
 
     # Overall metrics
-    mae  = abs_err.mean()
-    rmse = np.sqrt((abs_err ** 2).mean())
+    mae = abs_err.mean()
+    rmse = np.sqrt((abs_err**2).mean())
     mape = (np.abs((y_pred - y_true) / (y_true + 1e-8))).mean() * 100
     wape = np.abs(y_pred - y_true).sum() / np.abs(y_true).sum() * 100
 
@@ -102,8 +102,8 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     print(f"  WAPE: {wape:.2f}%")
 
     # Per-horizon metrics (MAE at each step h=1..168)
-    mae_per_h  = abs_err.mean(axis=0)
-    rmse_per_h = np.sqrt((abs_err ** 2).mean(axis=0))
+    mae_per_h = abs_err.mean(axis=0)
+    rmse_per_h = np.sqrt((abs_err**2).mean(axis=0))
 
     print(f"  MAE 1–24h:    {mae_per_h[:24].mean():.4f}")
     print(f"  MAE 25–72h:   {mae_per_h[24:72].mean():.4f}")
@@ -124,11 +124,13 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     window_mae = abs_err.mean(axis=1)  # MAE per 168h window
 
     worst_idx = np.argsort(-window_mae)[:10]
-    worst_table = pd.DataFrame({
-        "window_rank": np.arange(1, 11),
-        "window_id": worst_idx,
-        "window_mae": window_mae[worst_idx],
-    })
+    worst_table = pd.DataFrame(
+        {
+            "window_rank": np.arange(1, 11),
+            "window_id": worst_idx,
+            "window_mae": window_mae[worst_idx],
+        }
+    )
 
     worst_table.to_csv(f"{save_dir}/predictions/{model_name}_worst_windows.csv", index=False)
     print(f"  Worst windows saved to {save_dir}/predictions/{model_name}_worst_windows.csv")
@@ -155,11 +157,13 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
         plt.close()
 
     # ── Plot 1: Predictions vs Actuals (first 2 weeks of test) ──
-   
+
     fig, ax = plt.subplots(figsize=(14, 5))
-    sample = 0   # representative window
+    sample = 0  # representative window
     ax.plot(y_true[sample], label="Actual CO₂ factor", color="steelblue", linewidth=1.5)
-    ax.plot(y_pred[sample], label="Predicted (median)", color="tomato",   linewidth=1.5, linestyle="--")
+    ax.plot(
+        y_pred[sample], label="Predicted (median)", color="tomato", linewidth=1.5, linestyle="--"
+    )
     if predictions.output.dim() == 3:
         q10 = predictions.output[sample, :, 0].cpu().numpy()
         q90 = predictions.output[sample, :, 2].cpu().numpy()
@@ -176,8 +180,8 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     # ── Plot 2: MAE by forecast horizon step ──
     fig, ax = plt.subplots(figsize=(12, 4))
     ax.plot(range(1, HORIZON + 1), mae_per_h, color="steelblue", linewidth=1.5)
-    ax.axvline(24,  color="gray", linestyle="--", alpha=0.5, label="24h")
-    ax.axvline(72,  color="gray", linestyle=":",  alpha=0.5, label="72h")
+    ax.axvline(24, color="gray", linestyle="--", alpha=0.5, label="24h")
+    ax.axvline(72, color="gray", linestyle=":", alpha=0.5, label="72h")
     ax.axvline(168, color="gray", linestyle="-.", alpha=0.5, label="168h")
     ax.set_title(f"{model_name.upper()} — MAE by Forecast Horizon")
     ax.set_xlabel("Forecast horizon (hours ahead)")
@@ -189,11 +193,13 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     plt.close()
 
     # Save metrics to CSV
-    metrics_df = pd.DataFrame({
-        "horizon_h": range(1, HORIZON + 1),
-        "mae":  mae_per_h,
-        "rmse": rmse_per_h,
-    })
+    metrics_df = pd.DataFrame(
+        {
+            "horizon_h": range(1, HORIZON + 1),
+            "mae": mae_per_h,
+            "rmse": rmse_per_h,
+        }
+    )
     metrics_df.to_csv(f"{save_dir}/predictions/{model_name}_metrics_by_horizon.csv", index=False)
 
     print(f"  Saved plots to {save_dir}/predictions/{model_name}_*.png")
@@ -201,15 +207,15 @@ def evaluate(model, test_loader, df_test, cfg, model_name="tft"):
     wape_naive = np.abs(y_naive - y_true).sum() / np.abs(y_true).sum() * 100
 
     return {
-    "model":  {"mae": mae, "rmse": rmse, "mape": mape, "wape": wape},
-    "naive":  {"mae": mae_naive, "rmse": rmse_naive, "mape": mape_naive, "wape": wape_naive}, 
-    }   
-    
+        "model": {"mae": mae, "rmse": rmse, "mape": mape, "wape": wape},
+        "naive": {"mae": mae_naive, "rmse": rmse_naive, "mape": mape_naive, "wape": wape_naive},
+    }
+
 
 def compare_models(metrics_tft, metrics_nhits):
     """Print side-by-side comparison table."""
     naive = metrics_tft["naive"]  # naive is identical across runs
-    tft   = metrics_tft["model"]
+    tft = metrics_tft["model"]
     nhits = metrics_nhits["model"]
     print(f"\n{'='*60}")
     print("MODEL COMPARISON")
@@ -219,6 +225,7 @@ def compare_models(metrics_tft, metrics_nhits):
     for k in ["mae", "rmse", "mape", "wape"]:
         unit = "%" if k in ["mape", "wape"] else "kg/kWh"
         print(f"{k.upper():<10} {naive[k]:>14.4f} {nhits[k]:>14.4f} {tft[k]:>14.4f}  {unit}")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -244,7 +251,8 @@ def main():
             print(f"Skipping TFT: {ckpt_tft} not found")
         else:
             _, _, _, test_loader = build_datasets(
-                df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg)
+                df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg
+            )
             best_tft = TemporalFusionTransformer.load_from_checkpoint(ckpt_tft)
             print("\nEvaluating TFT on test set...")
             metrics_tft = evaluate(best_tft, test_loader, df, cfg, model_name="tft")
@@ -255,7 +263,8 @@ def main():
             print(f"Skipping NHiTS: {ckpt_nhits} not found")
         else:
             _, _, _, test_loader_nhits = build_datasets_nhits(
-                df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg)
+                df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg
+            )
             best_nhits = NHiTS.load_from_checkpoint(ckpt_nhits)
             print("\nEvaluating NHiTS on test set...")
             metrics_nhits = evaluate(best_nhits, test_loader_nhits, df, cfg, model_name="nhits")
@@ -280,6 +289,7 @@ def main():
         for k in ["mae", "rmse", "mape"]:
             unit = "%" if k == "mape" else "kg/kWh"
             print(f"{k.upper():<10} {n[k]:>14.4f} {m[k]:>14.4f}  {unit}")
+
 
 if __name__ == "__main__":
     main()

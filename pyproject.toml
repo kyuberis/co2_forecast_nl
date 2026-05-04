@@ -21,5 +21,24 @@ dependencies = [
     "pyyaml"
 ]
 
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "black"
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
 [tool.setuptools.packages.find]
 where = ["src"]

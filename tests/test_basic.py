@@ -4,6 +4,7 @@ Three sanity tests for the most important issues:
 2. make_splits places val/test windows strictly after their boundaries (no leakage)
 3. seasonal naive (t-24) on a 24h-periodic signal produces zero error
 """
+
 import sys
 from pathlib import Path
 
@@ -33,11 +34,13 @@ def test_time_features_deterministic_and_tz_aware():
 def test_chronological_split_no_leakage():
     n = 24 * 700
     timestamps = pd.date_range("2024-01-01", periods=n, freq="h", tz="UTC")
-    df = pd.DataFrame({
-        "timestamp": timestamps,
-        "y": np.arange(n, dtype=float),
-        "time_idx": np.arange(n),
-    })
+    df = pd.DataFrame(
+        {
+            "timestamp": timestamps,
+            "y": np.arange(n, dtype=float),
+            "time_idx": np.arange(n),
+        }
+    )
     cfg = {"train_end": "2024-07-01", "val_end": "2024-10-01"}
     df_out, max_train_idx, _, min_val_pred_idx, min_test_pred_idx = make_splits(df, cfg)
 
@@ -68,7 +71,7 @@ def test_seasonal_naive_perfect_on_24h_period():
     for h_idx in range(horizon):
         h = h_idx + 1
         if h <= 24:
-            offset = (24 - h + 1)
+            offset = 24 - h + 1
             idx = encoder_lengths - offset
             idx = np.clip(idx, 0, encoder_target.shape[1] - 1)
             y_naive[:, h_idx] = encoder_target[np.arange(len(idx)), idx]

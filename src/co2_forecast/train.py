@@ -15,6 +15,7 @@ Usage:
     python -m co2_forecast.train --config config.yaml --model tft
     python -m co2_forecast.train --config config.yaml --model nhits
 """
+
 import argparse
 import logging
 import os
@@ -30,7 +31,6 @@ from lightning.pytorch.callbacks import (
 from lightning.pytorch.loggers import CSVLogger
 
 from co2_forecast.data import (
-    add_time_features,
     build_datasets,
     build_datasets_nhits,
     fill_covariate_nans,
@@ -47,6 +47,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 # PART 3: TRAINING
 # ══════════════════════════════════════════════════════════════════
 
+
 def train_model(model, train_loader, val_loader, cfg, model_name="tft"):
     """Train with EarlyStopping, LR scheduling, and checkpointing."""
     save_dir = cfg["save_dir"]
@@ -55,50 +56,50 @@ def train_model(model, train_loader, val_loader, cfg, model_name="tft"):
 
     callbacks = [
         EarlyStopping(
-            monitor   = "val_loss",
-            patience  = cfg["early_stopping_patience"],
-            mode      = "min",
-            verbose   = True,
+            monitor="val_loss",
+            patience=cfg["early_stopping_patience"],
+            mode="min",
+            verbose=True,
         ),
         ModelCheckpoint(
-            dirpath   = f"{save_dir}/checkpoints",
-            filename  = f"{model_name}_best",
-            monitor   = "val_loss",
-            mode      = "min",
-            save_top_k = 1,
-            verbose   = True,
+            dirpath=f"{save_dir}/checkpoints",
+            filename=f"{model_name}_best",
+            monitor="val_loss",
+            mode="min",
+            save_top_k=1,
+            verbose=True,
         ),
         ModelCheckpoint(
-            dirpath    = f"{save_dir}/checkpoints",
-            filename   = f"{model_name}_last",
-            save_last  = True,
-            save_top_k = 0,
+            dirpath=f"{save_dir}/checkpoints",
+            filename=f"{model_name}_last",
+            save_last=True,
+            save_top_k=0,
         ),
         LearningRateMonitor(logging_interval="epoch"),
     ]
 
     trainer = pl.Trainer(
-        max_epochs          = cfg["max_epochs"],
-        accelerator         = cfg["accelerator"],
-        devices             = 1,
-        gradient_clip_val   = cfg["gradient_clip_val"],
-        callbacks           = callbacks,
-        logger              = CSVLogger(f"{save_dir}/logs", name=model_name),
-        enable_progress_bar = True,
-        log_every_n_steps   = 50,
+        max_epochs=cfg["max_epochs"],
+        accelerator=cfg["accelerator"],
+        devices=1,
+        gradient_clip_val=cfg["gradient_clip_val"],
+        callbacks=callbacks,
+        logger=CSVLogger(f"{save_dir}/logs", name=model_name),
+        enable_progress_bar=True,
+        log_every_n_steps=50,
     )
 
-    best_ckpt   = f"{save_dir}/checkpoints/{model_name}_best.ckpt"
+    best_ckpt = f"{save_dir}/checkpoints/{model_name}_best.ckpt"
     resume_ckpt = f"{save_dir}/checkpoints/{model_name}_last.ckpt"
 
     if os.path.exists(resume_ckpt):
         print(f"Resuming {model_name} from last epoch...")
-        trainer.fit(model, train_dataloaders=train_loader,
-                    val_dataloaders=val_loader, ckpt_path=resume_ckpt)
+        trainer.fit(
+            model, train_dataloaders=train_loader, val_dataloaders=val_loader, ckpt_path=resume_ckpt
+        )
     else:
         print(f"Starting {model_name} fresh...")
-        trainer.fit(model, train_dataloaders=train_loader,
-                    val_dataloaders=val_loader)
+        trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
     print(f"\nBest checkpoint: {callbacks[1].best_model_path}")
     if callbacks[1].best_model_score is not None:
@@ -110,6 +111,7 @@ def train_model(model, train_loader, val_loader, cfg, model_name="tft"):
 # MAIN
 # ══════════════════════════════════════════════════════════════════
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config.yaml")
@@ -120,7 +122,7 @@ def main():
         cfg = yaml.safe_load(f)
 
     pl.seed_everything(cfg["seed"], workers=True)
-    df = load_and_prepare(cfg["master_dataset"], cfg["target"]) 
+    df = load_and_prepare(cfg["master_dataset"], cfg["target"])
     df = fill_covariate_nans(df, cfg["past_covariates"] + cfg["future_covariates"])
 
     df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx = make_splits(df, cfg)
@@ -129,16 +131,18 @@ def main():
 
     if args.model == "tft":
         training_ds, train_loader, val_loader, _ = build_datasets(
-            df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg)
+            df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg
+        )
         model = build_tft(training_ds, cfg)
     else:
         training_ds, train_loader, val_loader, _ = build_datasets_nhits(
-            df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg)
+            df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg
+        )
         model = build_nhits(training_ds, cfg)
- 
-    print("\n" + "="*50)
+
+    print("\n" + "=" * 50)
     print(f"TRAINING: {args.model.upper()}")
-    print("="*50)
+    print("=" * 50)
     train_model(model, train_loader, val_loader, cfg, model_name=args.model)
 
 

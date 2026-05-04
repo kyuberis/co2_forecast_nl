@@ -8,6 +8,7 @@ Run a 168h forecast using the trained TFT and an Open-Meteo weather forecast.
 Usage:
     python -m co2_forecast.forecast --config config.yaml
 """
+
 import argparse
 import logging
 import os
@@ -45,12 +46,13 @@ def run_inference_with_weather_forecast(
     """
     168h real inference WITH weather forecast:
       - encoder: last `lookback` hours from df_full
-      - decoder: next `horizon` hours with Open-Meteo forecast weather_* + deterministic time features
+      - decoder: next `horizon` hours with Open-Meteo forecast weather_*
+      + deterministic time features
     """
     target_col = cfg["target"]
-    lookback   = cfg["lookback"]
-    horizon    = cfg["horizon"]
-    save_dir   = cfg["save_dir"]
+    lookback = cfg["lookback"]
+    horizon = cfg["horizon"]
+    save_dir = cfg["save_dir"]
 
     # ----  Load model
     model = TemporalFusionTransformer.load_from_checkpoint(best_ckpt_path)
@@ -104,7 +106,9 @@ def run_inference_with_weather_forecast(
         df_future[c] = df_future[c].ffill().fillna(0)
 
     # ---- Add deterministic time features for future rows (must match training)
-    df_future = add_time_features(df_future.set_index(time_col), timezone=cfg["timezone"]).reset_index()
+    df_future = add_time_features(
+        df_future.set_index(time_col), timezone=cfg["timezone"]
+    ).reset_index()
 
     # ---- Create consistent time_idx (same reference as training)
     min_ts = pd.to_datetime(df_hist[time_col].min())
@@ -119,13 +123,7 @@ def run_inference_with_weather_forecast(
             s = s.dt.tz_localize("UTC")
         else:
             s = s.dt.tz_convert("UTC")
-        return (
-            (s - min_ts)
-            .dt.total_seconds()
-            .div(3600)
-            .round()
-            .astype(int)
-        )
+        return (s - min_ts).dt.total_seconds().div(3600).round().astype(int)
 
     if "time_idx" not in df_context.columns:
         df_context["time_idx"] = _make_time_idx(df_context[time_col])
@@ -166,20 +164,25 @@ def run_inference_with_weather_forecast(
         y_q50 = preds[0, :, 1].detach().cpu().numpy()
         y_q90 = preds[0, :, 2].detach().cpu().numpy()
     else:
-        y_q50 = preds[0].detach().cpu().numpy() if hasattr(preds, "detach") else np.array(preds).squeeze()
+        y_q50 = (
+            preds[0].detach().cpu().numpy()
+            if hasattr(preds, "detach")
+            else np.array(preds).squeeze()
+        )
         y_q10 = y_q50
         y_q90 = y_q50
 
-    result = pd.DataFrame({
-        "timestamp": future_ts,
-        "co2_forecast_q10": y_q10[:horizon],
-        "co2_forecast_q50": y_q50[:horizon],
-        "co2_forecast_q90": y_q90[:horizon],
-    })
+    result = pd.DataFrame(
+        {
+            "timestamp": future_ts,
+            "co2_forecast_q10": y_q10[:horizon],
+            "co2_forecast_q50": y_q50[:horizon],
+            "co2_forecast_q90": y_q90[:horizon],
+        }
+    )
 
     os.makedirs(f"{save_dir}/predictions", exist_ok=True)
     result.to_csv(f"{save_dir}/predictions/co2_forecast_168h_with_weather.csv", index=False)
-
 
     fig, ax = plt.subplots(figsize=(14, 5))
     ax.plot(result["timestamp"], result["co2_forecast_q50"], label="Forecast (median)", linewidth=2)
@@ -188,7 +191,7 @@ def run_inference_with_weather_forecast(
         result["co2_forecast_q10"],
         result["co2_forecast_q90"],
         alpha=0.2,
-        label="80% interval"
+        label="80% interval",
     )
     ax.set_title("CO₂ Factor — 7-Day Forecast (With Open-Meteo Weather Forecast)")
     ax.set_xlabel("Timestamp")
@@ -221,7 +224,8 @@ def main():
     df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx = make_splits(df, cfg)
 
     training_ds, _, _, _ = build_datasets(
-        df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg)
+        df, max_train_idx, max_val_idx, min_val_pred_idx, min_test_pred_idx, cfg
+    )
 
     forecast_df = run_inference_with_weather_forecast(
         best_ckpt_path=ckpt_tft,

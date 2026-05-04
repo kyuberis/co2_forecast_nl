@@ -3,6 +3,7 @@ models.py
 
 TFT and NHiTS model factories.
 """
+
 import logging
 
 from pytorch_forecasting import TemporalFusionTransformer
@@ -14,6 +15,7 @@ log = logging.getLogger(__name__)
 # ══════════════════════════════════════════════════════════════════
 # PART 2: TFT MODEL
 # ══════════════════════════════════════════════════════════════════
+
 
 def build_tft(training_dataset, cfg):
     """
@@ -28,15 +30,15 @@ def build_tft(training_dataset, cfg):
     """
     tft = TemporalFusionTransformer.from_dataset(
         training_dataset,
-        learning_rate           = cfg["learning_rate"],
-        hidden_size             = cfg["tft_hidden_size"],
-        attention_head_size     = cfg["tft_attention_head_size"],
-        dropout                 = cfg["tft_dropout"],
-        hidden_continuous_size  = cfg["tft_hidden_continuous_size"],
-        loss                    = QuantileLoss(quantiles=cfg["tft_quantiles"]),
-        log_interval            = 50,
-        reduce_on_plateau_patience = 4,
-        optimizer               = "adamw",
+        learning_rate=cfg["learning_rate"],
+        hidden_size=cfg["tft_hidden_size"],
+        attention_head_size=cfg["tft_attention_head_size"],
+        dropout=cfg["tft_dropout"],
+        hidden_continuous_size=cfg["tft_hidden_continuous_size"],
+        loss=QuantileLoss(quantiles=cfg["tft_quantiles"]),
+        log_interval=50,
+        reduce_on_plateau_patience=4,
+        optimizer="adamw",
     )
     print(f"\nTFT parameters: {tft.size() / 1e3:.1f}k")
     return tft
@@ -49,11 +51,11 @@ def build_nhits(training_dataset, cfg):
     """
     model = NHiTS.from_dataset(
         training_dataset,
-        learning_rate  = cfg["learning_rate"],
-        weight_decay   = cfg["nhits_weight_decay"],
-        loss           = MAE(),
-        hidden_size    = cfg["nhits_hidden_size"],
-        optimizer      = "adamw",
+        learning_rate=cfg["learning_rate"],
+        weight_decay=cfg["nhits_weight_decay"],
+        loss=MAE(),
+        hidden_size=cfg["nhits_hidden_size"],
+        optimizer="adamw",
     )
     print(f"NHiTS parameters: {model.size() / 1e3:.1f}k")
     return model
