@@ -7,8 +7,8 @@ Computes MAE, RMSE, MAPE, WAPE per forecast horizon, seasonal naive baseline,
 worst forecast windows, and saves plots.
 
 Usage:
-    python -m src.evaluate --config config.yaml
-    python -m src.evaluate --config config.yaml --models tft
+    python -m co2_forecast.evaluate --config config.yaml
+    python -m co2_forecast.evaluate --config config.yaml --models tft
 """
 import argparse
 import logging
@@ -22,7 +22,7 @@ import yaml
 from pytorch_forecasting import TemporalFusionTransformer
 from pytorch_forecasting.models import NHiTS
 
-from src.data import (
+from co2_forecast.data import (
     add_time_features,
     build_datasets,
     build_datasets_nhits,

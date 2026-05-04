@@ -6,7 +6,7 @@ PART 5: INFERENCE (actual 7-day forecast)
 Run a 168h forecast using the trained TFT and an Open-Meteo weather forecast.
 
 Usage:
-    python -m src.forecast --config config.yaml
+    python -m co2_forecast.forecast --config config.yaml
 """
 import argparse
 import logging
@@ -19,7 +19,7 @@ import pandas as pd
 import yaml
 from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 
-from src.data import (
+from co2_forecast.data import (
     add_time_features,
     build_datasets,
     fill_covariate_nans,

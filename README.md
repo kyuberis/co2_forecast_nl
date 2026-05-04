@@ -42,15 +42,18 @@ Plots saved to `artifacts/predictions/` after evaluation.
 ## Project structure
 
 ```
+
 co2_forecast_nl/
 ├── config.yaml         # all paths and hyperparameters
 ├── requirements.txt
 ├── src/
-│   ├── data.py         # load_and_prepare, make_splits, build_datasets, add_time_features
-│   ├── models.py       # build_tft, build_nhits (baseline)
-│   ├── train.py        # CLI: train one model
-│   ├── evaluate.py     # CLI: metrics, naive baseline, plots
-│   └── forecast.py     # CLI: 168h forecast with weather input
+    └── co2_forecast/
+        ├──__init__.py
+│       ├── data.py         # load_and_prepare, make_splits, build_datasets, add_time_features
+│       ├── models.py       # build_tft, build_nhits (baseline)
+│       ├── train.py        # CLI: train one model
+│       ├── evaluate.py     # CLI: metrics, naive baseline, plots
+│       └── forecast.py     # CLI: 168h forecast with weather input
 ├── tests/
 │   └── test_basic.py
 └── data/               # CSVs 
@@ -73,10 +76,10 @@ Then:
 
 ```bash
 pytest -v                                            # sanity tests
-python -m src.train --config config.yaml --model tft
-python -m src.train --config config.yaml --model nhits
-python -m src.evaluate --config config.yaml
-python -m src.forecast --config config.yaml
+python -m co2_forecast.train --config config.yaml --model tft
+python -m co2_forecast.train --config config.yaml --model nhits
+python -m co2_forecast.evaluate --config config.yaml
+python -m co2_forecast.forecast --config config.yaml
 ```
 
 For a CPU smoke-test before a real GPU run, edit `config.yaml`: set `max_epochs: 2`, `batch_size: 16`, `tft_hidden_size: 16`, `accelerator: cpu`. Once the pipeline runs end-to-end, use proper parameters and train on GPU.

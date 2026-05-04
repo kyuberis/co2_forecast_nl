@@ -12,7 +12,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.data import add_time_features, make_splits  # noqa: E402
+from co2_forecast.data import add_time_features, make_splits  # noqa: E402
 
 
 def test_time_features_deterministic_and_tz_aware():

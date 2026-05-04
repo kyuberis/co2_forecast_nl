@@ -12,8 +12,8 @@ Architecture:
 Framework: PyTorch Lightning + PyTorch Forecasting
 
 Usage:
-    python -m src.train --config config.yaml --model tft
-    python -m src.train --config config.yaml --model nhits
+    python -m co2_forecast.train --config config.yaml --model tft
+    python -m co2_forecast.train --config config.yaml --model nhits
 """
 import argparse
 import logging
@@ -29,7 +29,7 @@ from lightning.pytorch.callbacks import (
 )
 from lightning.pytorch.loggers import CSVLogger
 
-from src.data import (
+from co2_forecast.data import (
     add_time_features,
     build_datasets,
     build_datasets_nhits,
@@ -37,7 +37,7 @@ from src.data import (
     load_and_prepare,
     make_splits,
 )
-from src.models import build_nhits, build_tft
+from co2_forecast.models import build_nhits, build_tft
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s | %(message)s")
