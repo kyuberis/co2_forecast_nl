@@ -57,8 +57,11 @@ TFT captures both daily seasonality and sharp changes in CO₂ intensity.
 ```
 
 co2_forecast_nl/
-├── config.yaml         # all paths and hyperparameters
-├── requirements.txt
+├── .github/
+│   └── workflows/
+│       └── tests.yml       # CI: pytest, ruff, black on Python 3.10 and 3.11 
+├── artifacts/
+│   └── predictions/        # saved plots and forecast outputs
 ├── src/
 │   └── co2_forecast/
 │       ├── __init__.py
@@ -69,12 +72,18 @@ co2_forecast_nl/
 │       └── forecast.py     # CLI: 168h forecast with weather input
 ├── tests/
 │   └── test_basic.py
-└── data/               # CSVs 
+├── data/               # CSVs
+├── config.yaml         # all paths and hyperparameters
+├── pyproject.toml # package metadata, dependencies, ruff/black config
+├── LICENSE
+└── README.md 
+
 ```
 
 ## Quick start
 
 ```bash
+
 git clone https://github.com/kyuberis/co2_forecast_nl.git
 cd co2_forecast_nl
 
@@ -88,10 +97,13 @@ Files `master_dataset.csv` and `openmeteo_forecast_7days.csv` are in `data/`.
 Then:
 
 ```bash
-# 1. Install package (editable mode)
-pip install -e .
 
-# 2. Run basic tests
+# 1. Install package
+pip install -e .                  # for using the pipeline
+# or
+pip install -e ".[dev]"           # for development (includes pytest, ruff, black)
+
+# 2. Verify installation
 pytest -v              
 
 # 3. Train models
