@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from co2_forecast.data import add_time_features, make_splits  # noqa: E402
+from co2_forecast.data import add_time_features, make_splits  
 
 def test_time_features_deterministic_and_tz_aware():
     idx = pd.date_range("2024-06-01", periods=24, freq="h", tz="UTC")
