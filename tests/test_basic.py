@@ -5,12 +5,11 @@ Three sanity tests for the most important issues:
 3. seasonal naive (t-24) on a 24h-periodic signal produces zero error
 """
 
-import sys
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
-from co2_forecast.data import add_time_features, make_splits  
+
+from co2_forecast.data import add_time_features, make_splits
+
 
 def test_time_features_deterministic_and_tz_aware():
     idx = pd.date_range("2024-06-01", periods=24, freq="h", tz="UTC")
