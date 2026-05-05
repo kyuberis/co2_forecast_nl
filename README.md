@@ -60,8 +60,8 @@ co2_forecast_nl/
 ├── config.yaml         # all paths and hyperparameters
 ├── requirements.txt
 ├── src/
-    └── co2_forecast/
-        ├── __init__.py
+│   └── co2_forecast/
+│       ├── __init__.py
 │       ├── data.py         # load_and_prepare, make_splits, build_datasets, add_time_features
 │       ├── models.py       # build_tft, build_nhits (baseline)
 │       ├── train.py        # CLI: train one model
